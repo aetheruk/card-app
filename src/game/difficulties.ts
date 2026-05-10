@@ -9,7 +9,7 @@ export const DIFFICULTIES: Record<Difficulty, DifficultyConfig> = {
     timeLimit: 75,
     winScore: 4,
     pointsPerCorrect: 1,
-    rewardCards: 3,
+    rewardCards: 1,
     questionTypes: ['name', 'supertype', 'rarity'],
   },
   medium: {
@@ -20,7 +20,7 @@ export const DIFFICULTIES: Record<Difficulty, DifficultyConfig> = {
     timeLimit: 70,
     winScore: 4,
     pointsPerCorrect: 1,
-    rewardCards: 5,
+    rewardCards: 3,
     questionTypes: ['name', 'rarity', 'supertype', 'number', 'pokemonType'],
   },
   hard: {
