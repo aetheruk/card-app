@@ -1,4 +1,4 @@
-import { Search } from 'lucide-react'
+import { Search, Star } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import type { CollectionEntry, Difficulty, TcgCard, TcgSet } from '../types/tcg'
 
@@ -50,20 +50,24 @@ export function SetBrowser({
           ).length
           const owned = cards.length ? loadedOwned : collectionCountsBySet[set.id] || 0
           const total = cards.length || set.total
+          const complete = total > 0 && owned >= total
 
           return (
             <button
               key={set.id}
-              className={`set-row ${selectedSetId === set.id ? 'active' : ''}`}
+              className={`set-row ${selectedSetId === set.id ? 'active' : ''} ${
+                complete ? 'complete' : ''
+              }`}
               onClick={() => onSelectSet(set.id)}
             >
               <img src={set.images.symbol || '/icon.svg'} alt="" />
               <span>
                 <strong>{set.name}</strong>
                 <small>
-                  {set.series} · {owned}/{total}
+                  {complete ? set.series : `${set.series} · ${owned}/${total}`}
                 </small>
               </span>
+              {complete && <Star className="set-complete-star" size={18} />}
             </button>
           )
         })}
