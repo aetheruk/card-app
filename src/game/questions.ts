@@ -37,6 +37,19 @@ export function buildQuestion(
   cardPool: InspectionCard[],
   questionTypes: QuestionType[],
 ): InspectionQuestion {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const question = buildQuestionCandidate(cards, cardPool, questionTypes)
+    if (question.options.length > 1) return question
+  }
+
+  return buildQuestionCandidate(cards, cardPool, ['name'])
+}
+
+function buildQuestionCandidate(
+  cards: InspectionCard[],
+  cardPool: InspectionCard[],
+  questionTypes: QuestionType[],
+): InspectionQuestion {
   const targetIndex = Math.floor(Math.random() * cards.length)
   const target = cards[targetIndex]
   const possibleTypes = questionTypes.filter((type) => {
