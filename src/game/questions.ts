@@ -83,7 +83,7 @@ function buildQuestionCandidate(
       type,
       targetIndex,
       answer: target.supertype,
-      prompt: `What supertype was card ${slot}?`,
+      prompt: `What card type was card ${slot}?`,
       options: buildOptions(
         target.supertype,
         cardPool.map((card) => card.supertype),

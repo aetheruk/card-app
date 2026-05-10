@@ -1,14 +1,19 @@
-import { ArrowLeft, CheckCircle2, Eye, Heart } from 'lucide-react'
+import {
+  ArrowLeft,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Heart,
+} from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CardDrawReveal } from './CardDrawReveal'
-import { CardImage } from './CardImage'
 import { DIFFICULTIES } from '../game/difficulties'
 import { buildQuestion, sample, type InspectionQuestion } from '../game/questions'
 import { drawRewardCards } from '../game/rewards'
 import type { Difficulty, GameResult, TcgCard, TcgSet } from '../types/tcg'
 
-type Phase = 'countdown' | 'attention' | 'preview' | 'question' | 'done'
+type Phase = 'study' | 'question' | 'done'
 type AnswerStatus = 'correct' | 'incorrect' | null
 
 interface GameScreenProps {
@@ -52,10 +57,10 @@ export function GameScreen({
     [config.questionTypes, config.rounds, playableCards, sessionCards, set.name],
   )
 
-  const [phase, setPhase] = useState<Phase>('countdown')
-  const [countdown, setCountdown] = useState(3)
+  const [phase, setPhase] = useState<Phase>('study')
   const [previewIndex, setPreviewIndex] = useState(0)
-  const [previewLeft, setPreviewLeft] = useState(config.previewSeconds)
+  const [previewDirection, setPreviewDirection] = useState(1)
+  const [studyLeft, setStudyLeft] = useState(30)
   const [questionIndex, setQuestionIndex] = useState(0)
   const [score, setScore] = useState(0)
   const [lives, setLives] = useState(2)
@@ -102,42 +107,23 @@ export function GameScreen({
     set.id,
   ])
 
-  useEffect(() => {
-    if (phase !== 'countdown') return
-    if (countdown <= 0) {
-      setPhase('attention')
-      return
-    }
-    const timer = window.setTimeout(() => setCountdown((value) => value - 1), 900)
-    return () => window.clearTimeout(timer)
-  }, [countdown, phase])
+  const startQuiz = useCallback(() => {
+    setTimeLeft(config.timeLimit)
+    setPhase('question')
+  }, [config.timeLimit])
 
   useEffect(() => {
-    if (phase !== 'attention') return
-    const timer = window.setTimeout(() => {
-      setPhase('preview')
-      setPreviewLeft(config.previewSeconds)
-    }, 1000)
-    return () => window.clearTimeout(timer)
-  }, [config.previewSeconds, phase])
-
-  useEffect(() => {
-    if (phase !== 'preview') return
-    if (previewLeft <= 0) {
-      if (previewIndex >= sessionCards.length - 1) {
-        setPhase('question')
-        return
-      }
-      setPreviewIndex((value) => value + 1)
-      setPreviewLeft(config.previewSeconds)
+    if (phase !== 'study') return
+    if (studyLeft <= 0) {
+      startQuiz()
       return
     }
     const timer = window.setTimeout(
-      () => setPreviewLeft((value) => value - 1),
+      () => setStudyLeft((value) => value - 1),
       1000,
     )
     return () => window.clearTimeout(timer)
-  }, [config.previewSeconds, phase, previewIndex, previewLeft, sessionCards.length])
+  }, [phase, startQuiz, studyLeft])
 
   useEffect(() => {
     if (phase !== 'question') return
@@ -172,6 +158,20 @@ export function GameScreen({
         setAnswerStatus(null)
       }
     }, 1350)
+  }
+
+  function showPreviousCard() {
+    setPreviewDirection(-1)
+    setPreviewIndex((value) =>
+      value === 0 ? sessionCards.length - 1 : value - 1,
+    )
+  }
+
+  function showNextCard() {
+    setPreviewDirection(1)
+    setPreviewIndex((value) =>
+      value >= sessionCards.length - 1 ? 0 : value + 1,
+    )
   }
 
   if (playableCards.length < 4) {
@@ -218,24 +218,14 @@ export function GameScreen({
               ))}
             </div>
             <div className="timer-chip">
-              <CircularTimer timeLeft={timeLeft} totalTime={config.timeLimit} />
+              <CircularTimer
+                timeLeft={phase === 'study' ? studyLeft : timeLeft}
+                totalTime={phase === 'study' ? 30 : config.timeLimit}
+              />
             </div>
             <button className="exit-chip" onClick={onExit} aria-label="Exit game">
               <ArrowLeft size={14} />
             </button>
-
-            {phase === 'countdown' && (
-              <div className="countdown-wrap">
-                <strong className="countdown">{Math.max(1, countdown)}</strong>
-              </div>
-            )}
-
-            {phase === 'attention' && (
-              <div className="attention-wrap">
-                <Eye size={48} />
-                <p>Pay attention</p>
-              </div>
-            )}
 
             {phase === 'question' && targetCard && (
               <div className="question-card-animation">
@@ -306,18 +296,70 @@ export function GameScreen({
             )}
 
             {phase !== 'question' && (
-              <div className="preview-content">
-                {phase === 'preview' && sessionCards[previewIndex] ? (
-                  <>
-                    <CardImage
-                      card={sessionCards[previewIndex]}
-                      className="inspection-preview-card"
-                    />
-                    <span>{previewLeft}s</span>
-                  </>
-                ) : (
-                  <p>The inspection will begin shortly.</p>
-                )}
+              <div className="preview-content study-content">
+                <div
+                  className="difficulty-orb study-card-number"
+                  aria-label={`Card ${previewIndex + 1} of ${sessionCards.length}`}
+                >
+                  {previewIndex + 1}
+                </div>
+                <div className="study-carousel">
+                  <button
+                    className="study-nav-button"
+                    onClick={showPreviousCard}
+                    aria-label="Previous card"
+                  >
+                    <ChevronLeft size={24} />
+                  </button>
+                  <AnimatePresence
+                    initial={false}
+                    custom={previewDirection}
+                    mode="wait"
+                  >
+                    {sessionCards[previewIndex] && (
+                      <motion.img
+                        key={sessionCards[previewIndex].id}
+                        className="inspection-preview-card"
+                        src={
+                          sessionCards[previewIndex].images.large ||
+                          sessionCards[previewIndex].images.small
+                        }
+                        alt={sessionCards[previewIndex].name}
+                        custom={previewDirection}
+                        initial={{
+                          opacity: 0,
+                          x: previewDirection * 80,
+                          scale: 0.96,
+                        }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={{
+                          opacity: 0,
+                          x: previewDirection * -80,
+                          scale: 0.96,
+                        }}
+                        transition={{ duration: 0.22, ease: 'easeOut' }}
+                        onError={(event) => {
+                          event.currentTarget.src =
+                            sessionCards[previewIndex].images.small ||
+                            '/icon.svg'
+                        }}
+                      />
+                    )}
+                  </AnimatePresence>
+                  <button
+                    className="study-nav-button"
+                    onClick={showNextCard}
+                    aria-label="Next card"
+                  >
+                    <ChevronRight size={24} />
+                  </button>
+                </div>
+                <button
+                  className="reveal-action primary study-ready-button"
+                  onClick={startQuiz}
+                >
+                  Ready
+                </button>
               </div>
             )}
           </section>

@@ -407,7 +407,7 @@ small {
 .set-picker-sheet,
 .difficulty-sheet {
   display: grid;
-  width: min(680px, 100%);
+  width: min(560px, 100%);
   max-height: min(760px, calc(100dvh - 36px));
   grid-template-rows: auto 1fr;
   overflow: hidden;
@@ -427,9 +427,24 @@ small {
   padding: 14px;
 }
 
+.difficulty-sheet > .difficulty-header {
+  justify-content: center;
+  padding: 20px 16px 16px;
+  text-align: center;
+}
+
 .set-picker-sheet h2,
 .difficulty-sheet h2 {
   margin: 0;
+}
+
+.difficulty-header h2 {
+  color: #f8fafc;
+  font-size: 0.9rem;
+  font-style: italic;
+  font-weight: 950;
+  letter-spacing: 0;
+  text-transform: uppercase;
 }
 
 .set-picker-sheet .set-browser {
@@ -439,28 +454,157 @@ small {
 
 .difficulty-list {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   overflow: auto;
-  padding: 14px;
+  padding: 14px 16px 18px;
 }
 
 .difficulty-row {
+  position: relative;
   display: flex;
-  min-height: 68px;
+  min-height: 86px;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 14px;
+  overflow: hidden;
   border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 8px;
-  background: rgba(39, 39, 42, 0.78);
+  background:
+    radial-gradient(circle at 14% 0%, rgba(45, 212, 191, 0.16), transparent 34%),
+    rgba(39, 39, 42, 0.78);
   color: white;
-  padding: 12px;
+  padding: 14px;
   text-align: left;
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.05),
+    0 18px 40px rgba(0, 0, 0, 0.22);
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease,
+    background 160ms ease;
 }
 
-.difficulty-row span {
+.difficulty-row::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.08) 48%,
+    transparent 70%
+  );
+  opacity: 0;
+  transform: translateX(-35%);
+  transition:
+    opacity 160ms ease,
+    transform 220ms ease;
+}
+
+.difficulty-row:hover {
+  border-color: rgba(45, 212, 191, 0.55);
+  background:
+    radial-gradient(circle at 14% 0%, rgba(45, 212, 191, 0.22), transparent 38%),
+    rgba(39, 39, 42, 0.9);
+  transform: translateY(-1px);
+}
+
+.difficulty-row:hover::after {
+  opacity: 1;
+  transform: translateX(35%);
+}
+
+.difficulty-medium {
+  background:
+    radial-gradient(circle at 14% 0%, rgba(59, 130, 246, 0.18), transparent 36%),
+    rgba(39, 39, 42, 0.78);
+}
+
+.difficulty-hard {
+  background:
+    radial-gradient(circle at 14% 0%, rgba(245, 158, 11, 0.18), transparent 36%),
+    rgba(39, 39, 42, 0.78);
+}
+
+.difficulty-extreme {
+  background:
+    radial-gradient(circle at 14% 0%, rgba(236, 72, 153, 0.2), transparent 38%),
+    rgba(39, 39, 42, 0.78);
+}
+
+.difficulty-orb,
+.difficulty-play {
+  position: relative;
+  z-index: 1;
   display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 999px;
+}
+
+.difficulty-orb {
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(45, 212, 191, 0.45);
+  background: rgba(20, 184, 166, 0.18);
+  color: #99f6e4;
+  font-size: 0.74rem;
+  font-style: italic;
+  font-weight: 950;
+}
+
+.difficulty-copy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  min-width: 0;
   gap: 3px;
+}
+
+.difficulty-copy strong {
+  font-size: 1rem;
+  font-style: italic;
+  font-weight: 950;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.difficulty-copy small {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.difficulty-meta {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.difficulty-meta em {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(9, 9, 11, 0.42);
+  color: #e4e4e7;
+  padding: 5px 8px;
+  font-size: 0.62rem;
+  font-style: italic;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.difficulty-play {
+  width: 36px;
+  height: 36px;
+  background: #0f766e;
+  color: white;
+  box-shadow: 0 0 22px rgba(20, 184, 166, 0.22);
 }
 
 .card-grid {
@@ -517,11 +661,6 @@ small {
   background:
     radial-gradient(circle at center, rgba(20, 184, 166, 0.13), transparent 58%),
     linear-gradient(180deg, #18181b, #09090b 58%);
-}
-
-.countdown {
-  color: #67e8f9;
-  font-size: clamp(4rem, 16vw, 9rem);
 }
 
 .preview-stage .large-card {
@@ -783,31 +922,9 @@ small {
   font-weight: 800;
 }
 
-.countdown-wrap,
-.attention-wrap,
 .question-card-animation {
   position: relative;
   z-index: 1;
-}
-
-.attention-wrap {
-  display: grid;
-  justify-items: center;
-  gap: 12px;
-  color: #5eead4;
-  text-align: center;
-}
-
-.attention-wrap p {
-  margin: 0;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.45);
-  color: white;
-  padding: 8px 16px;
-  font-size: 1.2rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  backdrop-filter: blur(8px);
 }
 
 .question-card-animation {
@@ -871,6 +988,41 @@ small {
   text-align: center;
 }
 
+.study-content {
+  align-content: center;
+  gap: 16px;
+}
+
+.study-card-number {
+  justify-self: center;
+  box-shadow: 0 0 24px rgba(20, 184, 166, 0.24);
+}
+
+.study-carousel {
+  display: grid;
+  width: min(100%, 460px);
+  grid-template-columns: 48px minmax(0, 1fr) 48px;
+  align-items: center;
+  gap: 10px;
+}
+
+.study-nav-button {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 999px;
+  background: rgba(24, 24, 27, 0.78);
+  color: #f8fafc;
+  backdrop-filter: blur(10px);
+}
+
+.study-ready-button {
+  width: min(220px, 100%);
+  justify-self: center;
+}
+
 .preview-content p {
   color: #a1a1aa;
   font-size: 0.95rem;
@@ -878,8 +1030,8 @@ small {
 }
 
 .inspection-preview-card {
-  width: min(360px, 82vw);
-  max-height: 52dvh;
+  width: min(330px, 100%);
+  max-height: 50dvh;
   object-fit: contain;
   box-shadow: 0 26px 70px rgba(0, 0, 0, 0.52);
 }
@@ -1727,6 +1879,20 @@ small {
   .set-row img {
     width: 28px;
     height: 28px;
+  }
+
+  .difficulty-row {
+    flex-wrap: wrap;
+  }
+
+  .difficulty-copy {
+    flex: 1;
+  }
+
+  .difficulty-meta {
+    flex-basis: 100%;
+    justify-content: flex-start;
+    padding-left: 60px;
   }
 
   .collection-view {

@@ -60,7 +60,6 @@ export interface DifficultyConfig {
   label: string
   packSize: number
   rounds: number
-  previewSeconds: number
   timeLimit: number
   winScore: number
   pointsPerCorrect: number

@@ -1,4 +1,4 @@
-import { Play } from 'lucide-react'
+import { Eye, Gift, Play } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { CardImage } from './CardImage'
 import { DIFFICULTIES, difficultyOrder } from '../game/difficulties'
@@ -103,40 +103,51 @@ export function CollectionView({
       </div>
 
       {difficultyOpen && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true">
-          <div className="difficulty-sheet">
-            <header>
-              <div>
-                <p className="eyebrow">Start game</p>
-                <h2>Choose difficulty</h2>
-              </div>
-              <button
-                className="ghost-button"
-                onClick={() => setDifficultyOpen(false)}
-              >
-                Close
-              </button>
+        <div
+          className="modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setDifficultyOpen(false)}
+        >
+          <div
+            className="difficulty-sheet"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header className="difficulty-header">
+              <h2>Choose difficulty</h2>
             </header>
             <div className="difficulty-list">
-              {difficultyOrder.map((difficulty) => {
+              {difficultyOrder.map((difficulty, index) => {
                 const config = DIFFICULTIES[difficulty]
                 return (
                   <button
                     key={difficulty}
-                    className="difficulty-row"
+                    className={`difficulty-row difficulty-${difficulty}`}
                     onClick={() => {
                       setDifficultyOpen(false)
                       onStartGame(difficulty)
                     }}
                   >
-                    <span>
-                      <strong>{config.label}</strong>
-                      <small>
-                        {config.packSize} cards shown · {config.rewardCards}{' '}
-                        reward cards
-                      </small>
+                    <span className="difficulty-orb">
+                      {String(index + 1).padStart(2, '0')}
                     </span>
-                    <Play size={16} />
+                    <span className="difficulty-copy">
+                      <strong>{config.label}</strong>
+                      <small>{config.questionTypes.length} question types</small>
+                    </span>
+                    <span className="difficulty-meta">
+                      <em aria-label={`${config.packSize} cards shown`}>
+                        <Eye size={13} />
+                        {config.packSize}
+                      </em>
+                      <em aria-label={`${config.rewardCards} reward cards`}>
+                        <Gift size={13} />
+                        {config.rewardCards}
+                      </em>
+                    </span>
+                    <span className="difficulty-play">
+                      <Play size={16} />
+                    </span>
                   </button>
                 )
               })}
