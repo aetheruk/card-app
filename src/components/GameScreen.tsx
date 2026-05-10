@@ -20,7 +20,6 @@ interface GameScreenProps {
   set: TcgSet
   cards: TcgCard[]
   difficulty: Difficulty
-  ownedCardIds: Set<string>
   onFinish: (result: GameResult) => Promise<void>
   onExit: () => void
 }
@@ -29,7 +28,6 @@ export function GameScreen({
   set,
   cards,
   difficulty,
-  ownedCardIds,
   onFinish,
   onExit,
 }: GameScreenProps) {
@@ -76,10 +74,7 @@ export function GameScreen({
     if (finishingRef.current) return
     finishingRef.current = true
     const won = finalScore >= config.winScore
-    const rewardPool = playableCards.filter((card) => !ownedCardIds.has(card.id))
-    const rewards = won
-      ? drawRewardCards(rewardPool, config.rewardCards)
-      : []
+    const rewards = won ? drawRewardCards(playableCards, config.rewardCards) : []
     const nextResult: GameResult = {
       setId: set.id,
       difficulty,
@@ -102,7 +97,6 @@ export function GameScreen({
     config.winScore,
     difficulty,
     onFinish,
-    ownedCardIds,
     playableCards,
     set.id,
   ])

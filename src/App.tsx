@@ -236,13 +236,6 @@ export function App() {
         set={selectedSet}
         cards={selectedCards}
         difficulty={difficulty}
-        ownedCardIds={
-          new Set(
-            Object.values(collection)
-              .filter((entry) => entry.quantity > 0)
-              .map((entry) => entry.cardId),
-          )
-        }
         onFinish={finishGame}
         onExit={() => setView('collection')}
       />
