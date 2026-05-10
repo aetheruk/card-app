@@ -45,14 +45,19 @@ button:disabled {
 }
 
 .setup-panel {
-  display: grid;
+  display: flex;
+  align-items: end;
   width: min(420px, 100%);
-  gap: 22px;
+  gap: 10px;
   border: 1px solid rgba(148, 163, 184, 0.28);
   border-radius: 8px;
   background: rgba(24, 24, 27, 0.92);
   padding: 28px;
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+
+.setup-panel label {
+  flex: 1;
 }
 
 .setup-panel h1,
@@ -109,6 +114,17 @@ input:focus {
   min-height: 44px;
   background: #0f766e;
   font-weight: 800;
+}
+
+.setup-submit-button {
+  display: grid;
+  width: 44px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid rgba(45, 212, 191, 0.34);
+  border-radius: 6px;
+  background: #0f766e;
+  color: #f8fafc;
 }
 
 .ghost-button,

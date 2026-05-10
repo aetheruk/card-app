@@ -6,6 +6,7 @@ interface SetBrowserProps {
   sets: TcgSet[]
   selectedSetId: string | null
   collection: Record<string, CollectionEntry>
+  collectionCountsBySet: Record<string, number>
   cardsBySet: Record<string, TcgCard[]>
   bestScores: Record<string, Partial<Record<Difficulty, number>>>
   refreshing: boolean
@@ -18,6 +19,7 @@ export function SetBrowser({
   sets,
   selectedSetId,
   collection,
+  collectionCountsBySet,
   cardsBySet,
   bestScores,
   refreshing,
@@ -50,8 +52,8 @@ export function SetBrowser({
           className="icon-button"
           onClick={onRefreshSets}
           disabled={refreshing}
-          title="Refresh sets"
-          aria-label="Refresh sets"
+          title="Check for new sets"
+          aria-label="Check for new sets"
         >
           <RefreshCw size={18} className={refreshing ? 'spin' : ''} />
         </button>
@@ -61,8 +63,10 @@ export function SetBrowser({
       <div className="set-list">
         {filteredSets.map((set) => {
           const cards = cardsBySet[set.id] || []
-          const owned = cards.filter((card) => collection[card.id]?.quantity > 0)
-            .length
+          const loadedOwned = cards.filter(
+            (card) => collection[card.id]?.quantity > 0,
+          ).length
+          const owned = cards.length ? loadedOwned : collectionCountsBySet[set.id] || 0
           const total = cards.length || set.total
 
           return (

@@ -203,11 +203,6 @@ export class CardRepository {
     return scores
   }
 
-  hasRefreshedTcgData(): boolean {
-    const row = this.first('SELECT COUNT(*) AS count FROM tcg_sets')
-    return Number(row?.count || 0) > 0
-  }
-
   getStoredSets(): TcgSet[] {
     return this.all(
       'SELECT id, name, series, total, printed_total, release_date, images FROM tcg_sets ORDER BY release_date DESC, name ASC',
@@ -221,7 +216,7 @@ export class CardRepository {
     ).map(rowToCard)
   }
 
-  async replaceTcgData(
+  async addTcgData(
     sets: TcgSet[],
     cardsBySet: Map<string, TcgCard[]>,
   ): Promise<void> {
@@ -229,15 +224,13 @@ export class CardRepository {
 
     this.db.run('BEGIN TRANSACTION')
     try {
-      this.db.run('DELETE FROM tcg_sets')
-      this.db.run('DELETE FROM tcg_cards')
-
       sets.forEach((set) => {
         this.db.run(
           `
           INSERT INTO tcg_sets
             (id, name, series, total, printed_total, release_date, images, refreshed_at)
           VALUES (?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(id) DO NOTHING
           `,
           [
             set.id,
@@ -258,6 +251,7 @@ export class CardRepository {
             INSERT INTO tcg_cards
               (id, set_id, name, number, rarity, payload, refreshed_at)
             VALUES (?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO NOTHING
             `,
             [
               card.id,

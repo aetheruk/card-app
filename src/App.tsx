@@ -79,6 +79,17 @@ export function App() {
     [selectedSetId, sets],
   )
   const selectedCards = selectedSetId ? cardsBySet[selectedSetId] || [] : []
+  const collectionCountsBySet = useMemo(() => {
+    const counts: Record<string, number> = {}
+    Object.values(collection).forEach((entry) => {
+      if (entry.quantity <= 0) return
+      const separatorIndex = entry.cardId.lastIndexOf('-')
+      if (separatorIndex <= 0) return
+      const setId = entry.cardId.slice(0, separatorIndex)
+      counts[setId] = (counts[setId] || 0) + 1
+    })
+    return counts
+  }, [collection])
 
   async function saveName(name: string) {
     const repository = await getRepository()
@@ -108,17 +119,19 @@ export function App() {
   async function refreshSets() {
     if (refreshing) return
     setRefreshing(true)
-    setRefreshLabel('Starting refresh')
+    setRefreshLabel('Checking for new sets')
     try {
-      await refreshTcgData(setRefreshLabel)
+      const addedCount = await refreshTcgData(setRefreshLabel)
       const loadedSets = await loadSets()
       setSets(loadedSets)
-      setCardsBySet({})
-      if (selectedSetId) await selectSet(selectedSetId)
-      setRefreshLabel('Refresh complete')
+      setRefreshLabel(
+        addedCount === 0
+          ? 'No new sets found'
+          : `Added ${addedCount} new ${addedCount === 1 ? 'set' : 'sets'}`,
+      )
     } catch (refreshError) {
       setRefreshLabel(
-        refreshError instanceof Error ? refreshError.message : 'Refresh failed',
+        refreshError instanceof Error ? refreshError.message : 'Update failed',
       )
     } finally {
       setRefreshing(false)
@@ -172,6 +185,7 @@ export function App() {
             sets={sets}
             selectedSetId={selectedSetId}
             collection={collection}
+            collectionCountsBySet={collectionCountsBySet}
             cardsBySet={cardsBySet}
             bestScores={bestScores}
             refreshing={refreshing}
@@ -207,6 +221,7 @@ export function App() {
               sets={sets}
               selectedSetId={selectedSetId}
               collection={collection}
+              collectionCountsBySet={collectionCountsBySet}
               cardsBySet={cardsBySet}
               bestScores={bestScores}
               refreshing={refreshing}

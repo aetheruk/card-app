@@ -43,24 +43,18 @@ function normalizeCard(raw: any): TcgCard {
 
 export async function loadSets(): Promise<TcgSet[]> {
   const repository = await getRepository()
-  if (repository.hasRefreshedTcgData()) {
-    return repository.getStoredSets()
-  }
-
-  bundledSetsPromise ??= fetch('/tcg/sets.json').then(async (res) => {
-    if (!res.ok) throw new Error('Bundled TCG sets could not be loaded.')
-    const raw = (await res.json()) as unknown[]
-    return raw.map(normalizeSet).sort(sortSets)
-  })
-
-  return bundledSetsPromise
+  const bundledSets = await loadBundledSets()
+  const storedSets = repository.getStoredSets()
+  const mergedSets = new Map<string, TcgSet>()
+  bundledSets.forEach((set) => mergedSets.set(set.id, set))
+  storedSets.forEach((set) => mergedSets.set(set.id, set))
+  return [...mergedSets.values()].sort(sortSets)
 }
 
 export async function loadCardsForSet(setId: string): Promise<TcgCard[]> {
   const repository = await getRepository()
-  if (repository.hasRefreshedTcgData()) {
-    return repository.getStoredCards(setId)
-  }
+  const storedCards = repository.getStoredCards(setId)
+  if (storedCards.length) return storedCards
 
   if (!bundledCardsPromises.has(setId)) {
     bundledCardsPromises.set(
@@ -78,7 +72,10 @@ export async function loadCardsForSet(setId: string): Promise<TcgCard[]> {
 
 export async function refreshTcgData(
   onProgress: (message: string) => void,
-): Promise<void> {
+): Promise<number> {
+  const repository = await getRepository()
+  const existingSetIds = new Set((await loadSets()).map((set) => set.id))
+
   const setsRes = await fetch(`${REMOTE_ROOT}/sets/en.json`, {
     cache: 'no-store',
   })
@@ -87,11 +84,19 @@ export async function refreshTcgData(
   }
 
   const rawSets = (await setsRes.json()) as unknown[]
-  const sets = rawSets.map(normalizeSet).sort(sortSets)
+  const newSets = rawSets
+    .map(normalizeSet)
+    .filter((set) => !existingSetIds.has(set.id))
+    .sort(sortSets)
   const cardsBySet = new Map<string, TcgCard[]>()
 
-  for (const [index, set] of sets.entries()) {
-    onProgress(`Refreshing ${set.name} (${index + 1}/${sets.length})`)
+  if (newSets.length === 0) {
+    onProgress('No new sets found')
+    return 0
+  }
+
+  for (const [index, set] of newSets.entries()) {
+    onProgress(`Adding ${set.name} (${index + 1}/${newSets.length})`)
     const cardsRes = await fetch(`${REMOTE_ROOT}/cards/en/${set.id}.json`, {
       cache: 'no-store',
     })
@@ -103,10 +108,20 @@ export async function refreshTcgData(
     cardsBySet.set(set.id, rawCards.map(normalizeCard).sort(sortCards))
   }
 
-  const repository = await getRepository()
-  await repository.replaceTcgData(sets, cardsBySet)
+  await repository.addTcgData(newSets, cardsBySet)
   bundledSetsPromise = null
   bundledCardsPromises.clear()
+  return newSets.length
+}
+
+async function loadBundledSets(): Promise<TcgSet[]> {
+  bundledSetsPromise ??= fetch('/tcg/sets.json').then(async (res) => {
+    if (!res.ok) throw new Error('Bundled TCG sets could not be loaded.')
+    const raw = (await res.json()) as unknown[]
+    return raw.map(normalizeSet).sort(sortSets)
+  })
+
+  return bundledSetsPromise
 }
 
 export function sortSets(a: TcgSet, b: TcgSet): number {

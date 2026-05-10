@@ -1,3 +1,4 @@
+import { ArrowRight } from 'lucide-react'
 import { useState } from 'react'
 
 interface SetupProps {
@@ -18,12 +19,8 @@ export function Setup({ onSave }: SetupProps) {
   return (
     <main className="setup-screen">
       <form className="setup-panel" onSubmit={submit}>
-        <div>
-          <p className="eyebrow">Local collection</p>
-          <h1>Pokemon TCG</h1>
-        </div>
         <label>
-          Trainer name
+          Trainer Name
           <input
             value={name}
             onChange={(event) => setName(event.target.value)}
@@ -31,8 +28,12 @@ export function Setup({ onSave }: SetupProps) {
             autoFocus
           />
         </label>
-        <button className="primary-button" disabled={saving || !name.trim()}>
-          {saving ? 'Saving' : 'Start collecting'}
+        <button
+          className="setup-submit-button"
+          disabled={saving || !name.trim()}
+          aria-label="Save trainer name"
+        >
+          <ArrowRight size={20} />
         </button>
       </form>
     </main>
