@@ -1,6 +1,6 @@
 {
-  "name": "Pokemon TCG Collection",
-  "short_name": "TCG Cards",
+  "name": "TCG Memory",
+  "short_name": "TCG Memory",
   "description": "Offline-first Pokemon TCG collection and memory game.",
   "start_url": "/",
   "display": "standalone",
@@ -8,9 +8,9 @@
   "theme_color": "#0f172a",
   "icons": [
     {
-      "src": "/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/app-icon.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]

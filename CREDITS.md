@@ -2,7 +2,7 @@
 
 ## Project
 
-Pokemon TCG Collection is a fan-made React/Vite app created for browsing, collecting, and playing with Pokemon TCG card data.
+TCG Memory is a fan-made React/Vite app created for browsing, collecting, and playing with Pokemon TCG card data.
 
 ## Data and Images
 

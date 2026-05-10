@@ -1,6 +1,6 @@
 const STATIC_CACHE = 'tcg-static-v1'
 const IMAGE_CACHE = 'tcg-images-v1'
-const STATIC_ASSETS = ['/', '/manifest.webmanifest', '/icon.svg']
+const STATIC_ASSETS = ['/', '/manifest.webmanifest', '/app-icon.png']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

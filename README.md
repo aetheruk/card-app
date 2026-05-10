@@ -1,6 +1,6 @@
-# Pokemon TCG Collection
+# TCG Memory
 
-Pokemon TCG Collection is a fan-made card collection and memory game built with React, Vite, and TypeScript. It lets players browse Pokemon Trading Card Game sets, view card details, manage a local collection, and play a card reveal game using Pokemon TCG card data.
+TCG Memory is a fan-made card collection and memory game built with React, Vite, and TypeScript. It lets players browse Pokemon Trading Card Game sets, view card details, manage a local collection, and play a card reveal game using Pokemon TCG card data.
 
 The app is designed to work offline after the first load. It bundles a snapshot of card and set metadata in `public/tcg`, stores collection data locally in the browser, and can refresh TCG data from the source dataset when requested.
 
