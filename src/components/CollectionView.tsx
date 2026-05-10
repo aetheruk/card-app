@@ -1,4 +1,4 @@
-import { Eye, Gift, Play } from 'lucide-react'
+import { Eye, Gift, Play, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { CardImage } from './CardImage'
 import { DIFFICULTIES, difficultyOrder } from '../game/difficulties'
@@ -22,22 +22,19 @@ export function CollectionView({
   collection,
   onStartGame,
 }: CollectionViewProps) {
-  const [filter, setFilter] = useState<'all' | 'owned' | 'missing'>('all')
   const [query, setQuery] = useState('')
   const [difficultyOpen, setDifficultyOpen] = useState(false)
+  const [focusedCard, setFocusedCard] = useState<TcgCard | null>(null)
 
   const filteredCards = useMemo(() => {
     const normalized = query.trim().toLowerCase()
     return cards.filter((card) => {
-      const owned = (collection[card.id]?.quantity || 0) > 0
-      if (filter === 'owned' && !owned) return false
-      if (filter === 'missing' && owned) return false
       if (!normalized) return true
       return `${card.name} ${card.number} ${card.rarity || ''}`
         .toLowerCase()
         .includes(normalized)
     })
-  }, [cards, collection, filter, query])
+  }, [cards, query])
 
   if (!set) {
     return <section className="empty-state">Select a set to begin.</section>
@@ -57,7 +54,10 @@ export function CollectionView({
       </header>
 
       <div className="primary-action-row">
-        <button className="start-game-button" onClick={() => setDifficultyOpen(true)}>
+        <button
+          className="reveal-action primary start-game-button"
+          onClick={() => setDifficultyOpen(true)}
+        >
           <Play size={18} />
           Start game
         </button>
@@ -69,27 +69,13 @@ export function CollectionView({
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Search cards"
         />
-        <div className="segmented">
-          {(['all', 'owned', 'missing'] as const).map((value) => (
-            <button
-              key={value}
-              className={filter === value ? 'active' : ''}
-              onClick={() => setFilter(value)}
-            >
-              {value}
-            </button>
-          ))}
-        </div>
       </div>
 
       <div className="card-grid">
         {filteredCards.map((card) => {
           const owned = (collection[card.id]?.quantity || 0) > 0
-          return (
-            <article
-              key={card.id}
-              className={`collection-card ${!owned ? 'missing' : ''}`}
-            >
+          const content = (
+            <>
               <CardImage card={card} hidden={!owned} />
               <div>
                 <strong>{owned ? card.name : 'Uncollected card'}</strong>
@@ -97,10 +83,54 @@ export function CollectionView({
                   #{card.number} · {owned ? card.rarity || 'Unknown' : 'Hidden'}
                 </small>
               </div>
-            </article>
+            </>
+          )
+          return (
+            owned ? (
+              <button
+                key={card.id}
+                className="collection-card collection-card-button"
+                onClick={() => setFocusedCard(card)}
+              >
+                {content}
+              </button>
+            ) : (
+              <article key={card.id} className="collection-card missing">
+                {content}
+              </article>
+            )
           )
         })}
       </div>
+
+      {focusedCard && (
+        <div
+          className="modal-backdrop card-detail-backdrop"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setFocusedCard(null)}
+        >
+          <div
+            className="card-detail-sheet"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              className="ghost-button icon-close-button card-detail-close"
+              onClick={() => setFocusedCard(null)}
+              aria-label="Close"
+            >
+              <X size={18} />
+            </button>
+            <img
+              src={focusedCard.images.large || focusedCard.images.small}
+              alt={focusedCard.name}
+              onError={(event) => {
+                event.currentTarget.src = focusedCard.images.small || '/icon.svg'
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {difficultyOpen && (
         <div

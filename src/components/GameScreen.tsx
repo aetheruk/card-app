@@ -44,14 +44,20 @@ export function GameScreen({
     [config.packSize, playableCards, set.name],
   )
   const questions = useMemo<InspectionQuestion[]>(
-    () =>
-      Array.from({ length: config.rounds }, () =>
-        buildQuestion(
-          sessionCards,
-          playableCards.map((card) => ({ ...card, setName: set.name })),
-          config.questionTypes,
-        ),
-      ),
+    () => {
+      const generatedQuestions: InspectionQuestion[] = []
+      for (let index = 0; index < config.rounds; index += 1) {
+        generatedQuestions.push(
+          buildQuestion(
+            sessionCards,
+            playableCards.map((card) => ({ ...card, setName: set.name })),
+            config.questionTypes,
+            generatedQuestions.at(-1),
+          ),
+        )
+      }
+      return generatedQuestions
+    },
     [config.questionTypes, config.rounds, playableCards, sessionCards, set.name],
   )
 

@@ -1,4 +1,4 @@
-import { RefreshCw, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import type { CollectionEntry, Difficulty, TcgCard, TcgSet } from '../types/tcg'
 
@@ -9,10 +9,7 @@ interface SetBrowserProps {
   collectionCountsBySet: Record<string, number>
   cardsBySet: Record<string, TcgCard[]>
   bestScores: Record<string, Partial<Record<Difficulty, number>>>
-  refreshing: boolean
-  refreshLabel: string
   onSelectSet: (setId: string) => void
-  onRefreshSets: () => void
 }
 
 export function SetBrowser({
@@ -22,10 +19,7 @@ export function SetBrowser({
   collectionCountsBySet,
   cardsBySet,
   bestScores,
-  refreshing,
-  refreshLabel,
   onSelectSet,
-  onRefreshSets,
 }: SetBrowserProps) {
   const [query, setQuery] = useState('')
 
@@ -39,26 +33,14 @@ export function SetBrowser({
 
   return (
     <aside className="set-browser">
-      <div className="browser-actions">
-        <div className="search-box">
-          <Search size={16} />
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search sets"
-          />
-        </div>
-        <button
-          className="icon-button"
-          onClick={onRefreshSets}
-          disabled={refreshing}
-          title="Check for new sets"
-          aria-label="Check for new sets"
-        >
-          <RefreshCw size={18} className={refreshing ? 'spin' : ''} />
-        </button>
+      <div className="search-box set-search-box">
+        <Search size={16} />
+        <input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Search sets"
+        />
       </div>
-      {refreshLabel && <p className="sync-label">{refreshLabel}</p>}
 
       <div className="set-list">
         {filteredSets.map((set) => {

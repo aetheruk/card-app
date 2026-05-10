@@ -36,13 +36,31 @@ export function buildQuestion(
   cards: InspectionCard[],
   cardPool: InspectionCard[],
   questionTypes: QuestionType[],
+  previousQuestion?: InspectionQuestion,
 ): InspectionQuestion {
   for (let attempt = 0; attempt < 20; attempt += 1) {
     const question = buildQuestionCandidate(cards, cardPool, questionTypes)
-    if (question.options.length > 1) return question
+    if (
+      question.options.length > 1 &&
+      !isSameQuestion(question, previousQuestion)
+    ) {
+      return question
+    }
   }
 
   return buildQuestionCandidate(cards, cardPool, ['name'])
+}
+
+function isSameQuestion(
+  question: InspectionQuestion,
+  previousQuestion?: InspectionQuestion,
+): boolean {
+  if (!previousQuestion) return false
+  return (
+    question.type === previousQuestion.type &&
+    question.targetIndex === previousQuestion.targetIndex &&
+    question.answer === previousQuestion.answer
+  )
 }
 
 function buildQuestionCandidate(

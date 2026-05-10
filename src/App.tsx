@@ -1,4 +1,4 @@
-import { Download, Menu, Settings, Upload } from 'lucide-react'
+import { Download, Menu, RefreshCw, Settings, Upload, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CollectionView } from './components/CollectionView'
 import { GameScreen } from './components/GameScreen'
@@ -143,15 +143,15 @@ export function App() {
   async function refreshSets() {
     if (refreshing) return
     setRefreshing(true)
-    setRefreshLabel('Checking for new sets')
+    setRefreshLabel('Checking for card data updates')
     try {
       const addedCount = await refreshTcgData(setRefreshLabel)
       const loadedSets = await loadSets()
       setSets(loadedSets)
       setRefreshLabel(
         addedCount === 0
-          ? 'No new sets found'
-          : `Added ${addedCount} new ${addedCount === 1 ? 'set' : 'sets'}`,
+          ? 'No set updates found'
+          : `Updated ${addedCount} ${addedCount === 1 ? 'set' : 'sets'}`,
       )
     } catch (refreshError) {
       setRefreshLabel(
@@ -271,10 +271,7 @@ export function App() {
             collectionCountsBySet={collectionCountsBySet}
             cardsBySet={cardsBySet}
             bestScores={bestScores}
-            refreshing={refreshing}
-            refreshLabel={refreshLabel}
             onSelectSet={(setId) => void selectSet(setId)}
-            onRefreshSets={() => void refreshSets()}
           />
         </div>
         <CollectionView
@@ -294,10 +291,11 @@ export function App() {
                 <h2>Collection</h2>
               </div>
               <button
-                className="ghost-button"
+                className="ghost-button icon-close-button"
                 onClick={() => setSetPickerOpen(false)}
+                aria-label="Close"
               >
-                Close
+                <X size={18} />
               </button>
             </header>
             <SetBrowser
@@ -307,13 +305,10 @@ export function App() {
               collectionCountsBySet={collectionCountsBySet}
               cardsBySet={cardsBySet}
               bestScores={bestScores}
-              refreshing={refreshing}
-              refreshLabel={refreshLabel}
               onSelectSet={(setId) => {
                 void selectSet(setId)
                 setSetPickerOpen(false)
               }}
-              onRefreshSets={() => void refreshSets()}
             />
           </div>
         </div>
@@ -333,10 +328,11 @@ export function App() {
             <header>
               <h2>Options</h2>
               <button
-                className="ghost-button"
+                className="ghost-button icon-close-button"
                 onClick={() => setOptionsOpen(false)}
+                aria-label="Close"
               >
-                Close
+                <X size={18} />
               </button>
             </header>
             <div className="options-list">
@@ -347,6 +343,22 @@ export function App() {
                 <span>
                   <strong>Export save data</strong>
                   <small>Download a backup of this device's collection.</small>
+                </span>
+              </button>
+              <button
+                className="options-row"
+                disabled={refreshing}
+                onClick={() => void refreshSets()}
+              >
+                <span className="options-icon">
+                  <RefreshCw size={18} className={refreshing ? 'spin' : ''} />
+                </span>
+                <span>
+                  <strong>Update card data</strong>
+                  <small>
+                    {refreshLabel ||
+                      'Download new sets and sets with changed card totals.'}
+                  </small>
                 </span>
               </button>
               <button

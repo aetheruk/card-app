@@ -74,7 +74,8 @@ export async function refreshTcgData(
   onProgress: (message: string) => void,
 ): Promise<number> {
   const repository = await getRepository()
-  const existingSetIds = new Set((await loadSets()).map((set) => set.id))
+  const existingSets = await loadSets()
+  const existingSetsById = new Map(existingSets.map((set) => [set.id, set]))
 
   const setsRes = await fetch(`${REMOTE_ROOT}/sets/en.json`, {
     cache: 'no-store',
@@ -84,19 +85,19 @@ export async function refreshTcgData(
   }
 
   const rawSets = (await setsRes.json()) as unknown[]
-  const newSets = rawSets
+  const setsToSync = rawSets
     .map(normalizeSet)
-    .filter((set) => !existingSetIds.has(set.id))
+    .filter((set) => shouldSyncSet(set, existingSetsById.get(set.id)))
     .sort(sortSets)
   const cardsBySet = new Map<string, TcgCard[]>()
 
-  if (newSets.length === 0) {
-    onProgress('No new sets found')
+  if (setsToSync.length === 0) {
+    onProgress('No set updates found')
     return 0
   }
 
-  for (const [index, set] of newSets.entries()) {
-    onProgress(`Adding ${set.name} (${index + 1}/${newSets.length})`)
+  for (const [index, set] of setsToSync.entries()) {
+    onProgress(`Updating ${set.name} (${index + 1}/${setsToSync.length})`)
     const cardsRes = await fetch(`${REMOTE_ROOT}/cards/en/${set.id}.json`, {
       cache: 'no-store',
     })
@@ -108,10 +109,10 @@ export async function refreshTcgData(
     cardsBySet.set(set.id, rawCards.map(normalizeCard).sort(sortCards))
   }
 
-  await repository.addTcgData(newSets, cardsBySet)
+  await repository.upsertTcgData(setsToSync, cardsBySet)
   bundledSetsPromise = null
   bundledCardsPromises.clear()
-  return newSets.length
+  return setsToSync.length
 }
 
 async function loadBundledSets(): Promise<TcgSet[]> {
@@ -122,6 +123,13 @@ async function loadBundledSets(): Promise<TcgSet[]> {
   })
 
   return bundledSetsPromise
+}
+
+function shouldSyncSet(remoteSet: TcgSet, existingSet?: TcgSet): boolean {
+  if (!existingSet) return true
+  if (remoteSet.total !== existingSet.total) return true
+  if (remoteSet.printedTotal !== existingSet.printedTotal) return true
+  return false
 }
 
 export function sortSets(a: TcgSet, b: TcgSet): number {

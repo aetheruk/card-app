@@ -249,7 +249,7 @@ export class CardRepository {
     ).map(rowToCard)
   }
 
-  async addTcgData(
+  async upsertTcgData(
     sets: TcgSet[],
     cardsBySet: Map<string, TcgCard[]>,
   ): Promise<void> {
@@ -263,7 +263,14 @@ export class CardRepository {
           INSERT INTO tcg_sets
             (id, name, series, total, printed_total, release_date, images, refreshed_at)
           VALUES (?, ?, ?, ?, ?, ?, ?)
-          ON CONFLICT(id) DO NOTHING
+          ON CONFLICT(id) DO UPDATE SET
+            name = excluded.name,
+            series = excluded.series,
+            total = excluded.total,
+            printed_total = excluded.printed_total,
+            release_date = excluded.release_date,
+            images = excluded.images,
+            refreshed_at = excluded.refreshed_at
           `,
           [
             set.id,
@@ -284,7 +291,13 @@ export class CardRepository {
             INSERT INTO tcg_cards
               (id, set_id, name, number, rarity, payload, refreshed_at)
             VALUES (?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(id) DO NOTHING
+            ON CONFLICT(id) DO UPDATE SET
+              set_id = excluded.set_id,
+              name = excluded.name,
+              number = excluded.number,
+              rarity = excluded.rarity,
+              payload = excluded.payload,
+              refreshed_at = excluded.refreshed_at
             `,
             [
               card.id,
