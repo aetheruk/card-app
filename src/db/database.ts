@@ -17,6 +17,35 @@ export function getRepository(): Promise<CardRepository> {
   return repositoryPromise
 }
 
+export function resetRepository(): void {
+  repositoryPromise = null
+}
+
+export async function validateDatabaseBytes(bytes: Uint8Array): Promise<void> {
+  const SQL = await initSqlJs({ locateFile: () => wasmUrl })
+  const db = new SQL.Database(bytes)
+  try {
+    const requiredTables = ['profile', 'collection', 'game_results']
+    const statement = db.prepare(
+      `SELECT name FROM sqlite_master WHERE type = 'table' AND name IN (${requiredTables
+        .map(() => '?')
+        .join(', ')})`,
+    )
+    statement.bind(requiredTables)
+    const foundTables = new Set<string>()
+    while (statement.step()) {
+      foundTables.add(String(statement.getAsObject().name))
+    }
+    statement.free()
+
+    if (requiredTables.some((table) => !foundTables.has(table))) {
+      throw new Error('This is not a valid TCG Match save file.')
+    }
+  } finally {
+    db.close()
+  }
+}
+
 async function createRepository(): Promise<CardRepository> {
   const SQL = await initSqlJs({ locateFile: () => wasmUrl })
   const bytes = await loadDatabaseBytes()
@@ -107,6 +136,10 @@ export class CardRepository {
 
   async persist(): Promise<void> {
     await saveDatabaseBytes(this.db.export())
+  }
+
+  exportBytes(): Uint8Array {
+    return this.db.export()
   }
 
   getProfile(): TrainerProfile | null {

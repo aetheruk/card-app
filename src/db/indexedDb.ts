@@ -40,3 +40,7 @@ export async function saveDatabaseBytes(bytes: Uint8Array): Promise<void> {
     request.onsuccess = () => resolve()
   })
 }
+
+export async function replaceDatabaseBytes(bytes: Uint8Array): Promise<void> {
+  await saveDatabaseBytes(bytes)
+}
